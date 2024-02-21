@@ -1,6 +1,7 @@
 // auth.dart
 
 import 'dart:js';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:aad_oauth/aad_oauth.dart';
 import 'package:aad_oauth/model/config.dart';
@@ -8,40 +9,39 @@ import 'package:ddv_gpt/main.dart';
 import 'package:flutter/material.dart';
 
 class Auth {
-  static AadOAuth _oauth = _initOAuth();
-
-  static AadOAuth _initOAuth() {
-    final String tenant = 'TENANT_ID'; // Read from application settings
-    final String clientId = 'CLIENT_ID'; // Read from application settings
-    final String redirectUri = 'REDIRECT_URI'; // Read from application settings
-
-    final Config config = Config(
-      tenant: tenant,
-      clientId: clientId,
-      scope: 'openid profile offline_access',
-      redirectUri: redirectUri,
-      navigatorKey: navigatorKey,
-      loader: SizedBox(),
-      appBar: AppBar(
-        title: Text('AAD OAuth Demo'),
-      ),
-      onPageFinished: (String url) {
-        print('onPageFinished: $url');
-      },
-    );
-
-    return AadOAuth(config);
-  }
+  static final Config config = Config(
+    tenant: 'TENANT_ID',
+    clientId: 'CLIENT_ID',
+    scope: 'openid profile offline_access',
+    redirectUri: 'REDIRECT_URI', // Provide your redirect URI here
+    navigatorKey: navigatorKey,
+    loader: SizedBox(),
+    appBar: AppBar(
+      title: Text('AAD OAuth Demo'),
+    ),
+    onPageFinished: (String url) {
+      print('onPageFinished: $url');
+    },
+  );
+  static final AadOAuth oauth = AadOAuth(config);
 
   static Future<bool> checkLoginStatus() async {
-    // Check if user is logged in (You need to implement this)
-    // Return true if logged in, false if not
-    return false;
+    try {
+      var accessToken = await oauth.getAccessToken();
+      if (accessToken != null) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('Error checking login status: $e');
+      return false;
+    }
   }
 
   static Future<bool> login() async {
     try {
-      final result = await _oauth.login();
+      final result = await oauth.login();
       result.fold(
         (l) {
           showError(l.toString());
@@ -52,7 +52,7 @@ class Auth {
           return true;
         },
       );
-      var accessToken = await _oauth.getAccessToken();
+      var accessToken = await oauth.getAccessToken();
       if (accessToken != null) {
         ScaffoldMessenger.of(context as BuildContext).hideCurrentSnackBar();
         ScaffoldMessenger.of(context as BuildContext)

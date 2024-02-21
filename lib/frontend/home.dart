@@ -43,13 +43,19 @@ class _HomeState extends State<Home> {
             ),
           );
         } else {
-          return Scaffold(
-            appBar: PreferredSize(
-              preferredSize: Size.fromHeight(50),
-              child: CustomNavBar(),
-            ),
-            body: ChatScreen(),
-          );
+          final bool isLoggedIn = snapshot.data ?? false;
+          if (isLoggedIn) {
+            return Scaffold(
+              appBar: PreferredSize(
+                preferredSize: Size.fromHeight(50),
+                child: CustomNavBar(),
+              ),
+              body: ChatScreen(),
+            );
+          }
+          {
+            return Scaffold();
+          }
         }
       },
     );
